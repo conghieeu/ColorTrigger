@@ -6,10 +6,12 @@ import time
 from enum import Enum
 from pynput.mouse import Listener as MouseListener
 
-
-# Biến toàn cục để theo dõi trạng thái chuột phải
+pyautogui.FAILSAFE = False
 is_right_mouse_down = False
-
+purple = [201, 47, 204]
+yellow = [30, 255, 255]
+cyan = [255, 255, 0] 
+shot_count = 0
 
 def on_mouse_click(x, y, button, pressed):
     global is_right_mouse_down
@@ -17,7 +19,6 @@ def on_mouse_click(x, y, button, pressed):
         is_right_mouse_down = pressed
 mouse_listener = MouseListener(on_click=on_mouse_click)
 mouse_listener.start()
-
 
 def get_color_limits(color):
     c = np.uint8([[color]])
@@ -28,51 +29,31 @@ def get_color_limits(color):
     upperLimit = np.array(upperLimit, dtype=np.uint8)
     return lowerLimit, upperLimit
 
-
-def is_purple_present(image):
+def is_color_present(image, color):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    purple = [201, 47, 204]
-    lower_purple, upper_purple = get_color_limits(purple)
-    mask = cv2.inRange(hsv, lower_purple, upper_purple)
+    lower_color, upper_color = get_color_limits(color)
+    mask = cv2.inRange(hsv, lower_color, upper_color)
     return cv2.countNonZero(mask) > 0
 
-
-# nhận diện màu vàng
-def is_yellow_present(image):
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    yellow = [30, 255, 255]
-    lower_yellow, upper_yellow = get_color_limits(yellow)
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    return cv2.countNonZero(mask) > 0
-
-
-def main_logic():
-    pyautogui.FAILSAFE = False  # Tắt tính năng an toàn (không khuyến khích)
-    global is_right_mouse_down
-    
-    count = 0  # Thêm biến đếm
-
+def detect_and_shoot(purple, cyan):
+    global is_right_mouse_down, shot_count
     with mss.mss() as sct:
         screen_width, screen_height = pyautogui.size()
-
         # Xác định vùng giữa màn hình với kích thước 5x5 pixel
         monitor = {
-            "top": screen_height // 2 - 4,
-            "left": screen_width // 2 - 4,
-            "width": 8,
-            "height": 8,
-        }
-
-        while True:
-            # Quét màn hình
+        "top": screen_height // 2 - 4,
+        "left": screen_width // 2 - 4,
+        "width": 8,
+        "height": 8,
+    }
+        while True: 
             screenshot = sct.grab(monitor)
-            image = np.array(screenshot) 
-            
-            if is_yellow_present(image) and is_purple_present(image) and is_right_mouse_down:
-                pyautogui.press("P") 
-                time.sleep(0.05)
+            image = np.array(screenshot)  
+            if is_color_present(image, cyan) and is_color_present(image, purple) and is_right_mouse_down:
+                pyautogui.press("J") 
+                time.sleep(0.04)
                 pyautogui.press("M") 
-                count += 1   
-                print("SHOT " + str(count))  
+                shot_count += 1   
+                print("SHOT " + str(shot_count))
 
-main_logic()
+detect_and_shoot(purple, cyan) 
