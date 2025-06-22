@@ -1,5 +1,8 @@
 # Trigger Bot for Valorant
 
+## Requirements (Yêu cầu)
+- Python 3.11.9
+
 ## Setup Instructions (Hướng dẫn cài đặt)
 1. Install required packages (Cài đặt các gói cần thiết):
    ```
